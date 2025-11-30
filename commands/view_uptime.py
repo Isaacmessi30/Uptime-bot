@@ -5,18 +5,7 @@ Member commands for viewing uptime statistics.
 import discord
 from discord import app_commands
 from discord.ext import commands
-import json
-import os
-
-DATA_FILE = 'bot_data.json'
-
-
-def load_data():
-    """Load bot data from JSON file."""
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    return {'channels': {}, 'monitored_bots': {}, 'uptime_stats': {}}
+from utils.data import load_data
 
 
 class ViewUptimeCog(commands.Cog):

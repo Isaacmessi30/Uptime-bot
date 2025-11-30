@@ -6,8 +6,8 @@ import os
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-import json
 from datetime import datetime
+from utils.data import load_data, save_data, load_data_async, save_data_async
 
 # Load environment variables
 load_dotenv()
@@ -22,27 +22,6 @@ intents.presences = True
 
 # Bot instance
 bot = commands.Bot(command_prefix='/', intents=intents)
-
-# Data storage path
-DATA_FILE = 'bot_data.json'
-
-
-def load_data():
-    """Load bot data from JSON file."""
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    return {'channels': {}, 'monitored_bots': {}, 'uptime_stats': {}}
-
-
-def save_data(data):
-    """Save bot data to JSON file."""
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=4)
-
-
-# Global data
-bot_data = load_data()
 
 
 @bot.event
@@ -66,7 +45,7 @@ async def on_ready():
 @tasks.loop(minutes=1)
 async def check_bot_status():
     """Check the status of monitored bots."""
-    global bot_data
+    bot_data = await load_data_async()
     
     for guild_id, bots in bot_data.get('monitored_bots', {}).items():
         guild = bot.get_guild(int(guild_id))
@@ -117,7 +96,7 @@ async def check_bot_status():
             
             bot_data['uptime_stats'][guild_id][bot_id]['last_check'] = datetime.now().isoformat()
         
-        save_data(bot_data)
+        await save_data_async(bot_data)
 
 
 @check_bot_status.before_loop
